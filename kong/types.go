@@ -201,13 +201,12 @@ type Configuration map[string]interface{}
 //}
 
 func (in Configuration) DeepCopy() Configuration {
-	newConfiguration := reflect.New(reflect.TypeOf(in).Elem())
-
-	val := reflect.ValueOf(in).Elem()
-	newValue := newConfiguration.Elem()
-	for i := 0; i < val.NumField(); i++ {
-		newField := newValue.Field(i)
-		newField.Set(val.Field(i))
+	newConfiguration := reflect.New(reflect.TypeOf(in))
+	iter := reflect.ValueOf(in).MapRange()
+	for iter.Next() {
+		k := iter.Key()
+		v := iter.Value()
+		newConfiguration.SetMapIndex(k, v)
 	}
 
 	return newConfiguration.Interface().(Configuration)
