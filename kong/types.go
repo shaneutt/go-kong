@@ -2,6 +2,7 @@ package kong
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 )
 
@@ -180,23 +181,36 @@ type Target struct {
 // Configuration represents a config of a plugin in Kong.
 type Configuration map[string]interface{}
 
-// DeepCopyInto copies the receiver, writing into out. in must be non-nil.
-func (in Configuration) DeepCopyInto(out *Configuration) {
-	// Resorting to JSON since interface{} cannot be DeepCopied easily.
-	// This could be replaced using reflection-fu.
-	// XXX Ignoring errors
-	b, _ := json.Marshal(&in)
-	_ = json.Unmarshal(b, out)
-}
+//// DeepCopyInto copies the receiver, writing into out. in must be non-nil.
+//func (in Configuration) DeepCopyInto(out *Configuration) {
+//	// Resorting to JSON since interface{} cannot be DeepCopied easily.
+//	// This could be replaced using reflection-fu.
+//	// XXX Ignoring errors
+//	b, _ := json.Marshal(&in)
+//	_ = json.Unmarshal(b, out)
+//}
+//
+//// DeepCopy copies the receiver, creating a new Configuration.
+//func (in Configuration) DeepCopy() Configuration {
+//	if in == nil {
+//		return nil
+//	}
+//	out := new(Configuration)
+//	in.DeepCopyInto(out)
+//	return *out
+//}
 
-// DeepCopy copies the receiver, creating a new Configuration.
 func (in Configuration) DeepCopy() Configuration {
-	if in == nil {
-		return nil
+	newConfiguration := reflect.New(reflect.TypeOf(in).Elem())
+
+	val := reflect.ValueOf(in).Elem()
+	newValue := newConfiguration.Elem()
+	for i := 0; i < val.NumField(); i++ {
+		newField := newValue.Field(i)
+		newField.Set(val.Field(i))
 	}
-	out := new(Configuration)
-	in.DeepCopyInto(out)
-	return *out
+
+	return newConfiguration.Interface().(Configuration)
 }
 
 // Plugin represents a Plugin in Kong.
