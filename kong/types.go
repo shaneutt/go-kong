@@ -185,7 +185,13 @@ func (in Configuration) DeepCopyInto(out *Configuration) {
 	// Resorting to JSON since interface{} cannot be DeepCopied easily.
 	// This could be replaced using reflection-fu.
 	// XXX Ignoring errors
-	b, _ := json.Marshal(&in)
+	b, err := json.Marshal(&in)
+	c, indentErr := json.MarshalIndent(&in, "", "  ")
+	if err != nil {
+	}
+	if indentErr != nil {
+		_ = json.Unmarshal(c, out)
+	}
 	_ = json.Unmarshal(b, out)
 }
 
